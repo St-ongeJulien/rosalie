@@ -1,0 +1,62 @@
+{
+  "npcs": [
+    {
+      "npcId": "demo-npc-1",
+      "entityId": "hytale:npc_demo",
+      "name": "Fernand",
+      "displayTitle": "Maître des quêtes",
+      "firstPageId": "page_1",
+      "pages": [
+        {
+          "pageId": "page_1",
+          "title": "Bienvenue",
+          "content": "Salut aventurier! Veux-tu commencer la quête?",
+          "nextButtonText": "Suivant",
+          "customButton1Text": "Accepter",
+          "enableCustomButton1": true,
+          "customButton1ButtonReward": {
+            "customRewards": [
+              {
+                "rewardId": "quest:start:quest_demo_1",
+                "amount": 1
+              }
+            ]
+          }
+        },
+        {
+          "pageId": "page_2",
+          "title": "Objectif",
+          "content": "Ramène-moi 10 pommes.",
+          "customButton1Text": "Donner",
+          "enableCustomButton1": true,
+          "customButton1ButtonRequirement": {
+            "itemRequirements": [
+              {
+                "itemId": "hytale:item_apple",
+                "quantity": 10,
+                "consume": true
+              }
+            ],
+            "customRequirements": [
+              {
+                "requirementId": "quest:active:quest_demo_1",
+                "amount": 1
+              }
+            ]
+          },
+          "customButton1ButtonReward": {
+            "customRewards": [
+              {
+                "rewardId": "quest:complete:quest_demo_1",
+                "amount": 1
+              }
+            ],
+            "consoleCommands": [
+              "give {player_name} hytale:coin 25"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

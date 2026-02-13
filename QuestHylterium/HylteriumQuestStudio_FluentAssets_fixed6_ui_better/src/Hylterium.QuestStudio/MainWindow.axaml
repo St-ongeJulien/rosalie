@@ -1,0 +1,559 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Hylterium.QuestStudio.ViewModels"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        mc:Ignorable="d"
+        x:Class="Hylterium.QuestStudio.MainWindow"
+        Width="1500" Height="860" MinWidth="1100" MinHeight="650"
+        Title="Hylterium Quest Studio">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
+  <Window.Styles>
+    <!-- Card -->
+    <Style Selector="Border.card">
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="Padding" Value="12"/>
+    </Style>
+
+    <!-- Headings -->
+    <Style Selector="TextBlock.h1">
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+    </Style>
+
+    <Style Selector="TextBlock.h2">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="Margin" Value="0,10,0,0"/>
+    </Style>
+
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Opacity" Value="0.7"/>
+    </Style>
+
+    <Style Selector="TextBlock.caption">
+      <Setter Property="FontSize" Value="12"/>
+      <Setter Property="Opacity" Value="0.75"/>
+    </Style>
+
+    <Style Selector="DataGrid">
+      <Setter Property="MinHeight" Value="120"/>
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto">
+
+    <!-- Top command bar -->
+    <ui:CommandBar Grid.Row="0"
+                   IsOpen="True"
+                   IsSticky="True"
+                   ClosedDisplayMode="Compact"
+                   DefaultLabelPosition="Right"
+                   IsDynamicOverflowEnabled="True"
+                   OverflowButtonVisibility="Auto">
+      <ui:CommandBar.PrimaryCommands>
+        <ui:CommandBarButton Label="Ouvrir JSON" Click="OnOpenClick" />
+        <ui:CommandBarButton Label="Sauver" Click="OnSaveClick" />
+        <ui:CommandBarButton Label="Sauver sous…" Click="OnSaveAsClick" />
+        <ui:CommandBarSeparator/>
+        <ui:CommandBarButton Label="Nouveau NPC" Command="{Binding NewNpcCommand}" />
+        <ui:CommandBarButton Label="Nouvelle page" Command="{Binding NewPageCommand}" />
+        <ui:CommandBarButton Label="Supprimer page" Command="{Binding DeleteSelectedPageCommand}" />
+      </ui:CommandBar.PrimaryCommands>
+
+      <ui:CommandBar.SecondaryCommands>
+        <ui:CommandBarButton Label="Scanner Mods Hytale" Click="OnScanHytaleModsClick" />
+        <ui:CommandBarButton Label="Ajouter pack assets…" Click="OnAddAssetPackClick" />
+        <ui:CommandBarButton Label="Ajouter dossier assets…" Click="OnAddAssetFolderClick" />
+      </ui:CommandBar.SecondaryCommands>
+
+      <ui:CommandBar.Content>
+        <TextBlock Classes="caption"
+                   VerticalAlignment="Center"
+                   Text="{Binding CurrentFilePath, FallbackValue='(aucun fichier)'}" />
+      </ui:CommandBar.Content>
+    </ui:CommandBar>
+
+    <!-- Main tabs -->
+    <ui:TabView Grid.Row="1" Margin="10">
+      <ui:TabView.TabItems>
+
+        <!-- Quests tab -->
+        <ui:TabViewItem Header="Quêtes" IsClosable="False">
+          <Grid ColumnDefinitions="360,360,*" RowDefinitions="*">
+
+            <!-- NPCs -->
+            <Border Classes="card" Margin="0,0,10,0">
+              <Grid RowDefinitions="Auto,*,Auto">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="h1" Text="NPCs"/>
+                  <TextBox Watermark="Rechercher un NPC…" Text="{Binding NpcSearch, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding VisibleNpcs}"
+                         SelectedItem="{Binding SelectedNpc}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel>
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding DisplayTitle}" Classes="caption" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Expander Grid.Row="2" Header="Détails NPC" IsExpanded="True">
+                  <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="8">
+                      <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="npcId" Classes="muted"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedNpc.NpcId, Mode=TwoWay}"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="entityId" Classes="muted"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedNpc.EntityId, Mode=TwoWay}"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="name" Classes="muted"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedNpc.Name, Mode=TwoWay}"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="title" Classes="muted"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedNpc.DisplayTitle, Mode=TwoWay}"/>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="firstPageId" Classes="muted"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SelectedNpc.FirstPageId, Mode=TwoWay}"/>
+                      </Grid>
+                    </StackPanel>
+                  </ScrollViewer>
+                </Expander>
+              </Grid>
+            </Border>
+
+            <!-- Pages -->
+            <Border Grid.Column="1" Classes="card" Margin="0,0,10,0">
+              <Grid RowDefinitions="Auto,*,Auto">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="h1" Text="Pages"/>
+                  <TextBox Watermark="Rechercher une page…" Text="{Binding PageSearch, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding VisiblePages}"
+                         SelectedItem="{Binding SelectedPage}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel>
+                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding PageId}" Classes="caption" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Expander Grid.Row="2" Header="Quêtes détectées" IsExpanded="True">
+                  <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding QuestIds}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding .}" Opacity="0.85"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </ScrollViewer>
+                </Expander>
+              </Grid>
+            </Border>
+
+            <!-- Editor -->
+            <Border Grid.Column="2" Classes="card">
+              <Grid RowDefinitions="Auto,*">
+                <StackPanel Spacing="2">
+                  <TextBlock Classes="h1" Text="Éditeur"/>
+                  <TextBlock Classes="caption" Text="{Binding SelectedNpc.Name, FallbackValue='(sélectionne un NPC)'}"/>
+                </StackPanel>
+
+                <ui:TabView Grid.Row="1" Margin="0,10,0,0">
+                  <ui:TabView.TabItems>
+
+                    <!-- Page -->
+                    <ui:TabViewItem Header="Page" IsClosable="False">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="10" Margin="0,6,0,0">
+
+                          <TextBlock Classes="h2" Text="Identité"/>
+                          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,4,0,0">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="pageId" Classes="muted"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPage.PageId, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="title" Classes="muted"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPage.Title, Mode=TwoWay}"/>
+                          </Grid>
+
+                          <TextBlock Classes="h2" Text="Contenu"/>
+                          <TextBox Text="{Binding SelectedPage.Content, Mode=TwoWay}"
+                                   AcceptsReturn="True"
+                                   MinHeight="220"
+                                   TextWrapping="Wrap"/>
+
+                        </StackPanel>
+                      </ScrollViewer>
+                    </ui:TabViewItem>
+
+                    <!-- Buttons -->
+                    <ui:TabViewItem Header="Boutons" IsClosable="False">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="10" Margin="0,6,0,0">
+
+                          <TextBlock Classes="h2" Text="Activer / Désactiver"/>
+                          <StackPanel Orientation="Horizontal" Spacing="14">
+                            <CheckBox Content="Prev" IsChecked="{Binding SelectedPage.EnablePreviousButton, Mode=TwoWay}"/>
+                            <CheckBox Content="Next" IsChecked="{Binding SelectedPage.EnableNextButton, Mode=TwoWay}"/>
+                            <CheckBox Content="Close" IsChecked="{Binding SelectedPage.EnableCloseButton, Mode=TwoWay}"/>
+                            <CheckBox Content="Custom1" IsChecked="{Binding SelectedPage.EnableCustomButton1, Mode=TwoWay}"/>
+                            <CheckBox Content="Custom2" IsChecked="{Binding SelectedPage.EnableCustomButton2, Mode=TwoWay}"/>
+                          </StackPanel>
+
+                          <TextBlock Classes="h2" Text="Texte des boutons"/>
+                          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,4,0,0">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="next" Classes="muted"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPage.NextButtonText, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="prev" Classes="muted"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPage.PreviousButtonText, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="close" Classes="muted"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedPage.CloseButtonText, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="custom1" Classes="muted"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedPage.CustomButton1Text, Mode=TwoWay}"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="custom2" Classes="muted"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SelectedPage.CustomButton2Text, Mode=TwoWay}"/>
+                          </Grid>
+
+                          <TextBlock Classes="h2" Text="Commandes"/>
+                          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto" Margin="0,4,0,0">
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="closeButtonCommand" Classes="muted"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPage.CloseButtonCommand, Mode=TwoWay}"/>
+                          </Grid>
+
+                        </StackPanel>
+                      </ScrollViewer>
+                    </ui:TabViewItem>
+
+                    <!-- Requirements -->
+                    <ui:TabViewItem Header="Prérequis" IsClosable="False">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="12" Margin="0,6,0,0">
+
+                          <Expander Header="Next button" IsExpanded="True">
+                            <StackPanel Spacing="8" Margin="0,6,0,0">
+                              <TextBlock Text="Items requis" Classes="muted"/>
+                              <DataGrid ItemsSource="{Binding NextItemRequirements}"
+                                        SelectedItem="{Binding SelectedNextItemRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="itemId" Binding="{Binding ItemId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="qty" Binding="{Binding Quantity, Mode=TwoWay}" Width="80"/>
+                                  <DataGridCheckBoxColumn Header="consume" Binding="{Binding Consume, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddNextItemRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveNextItemRequirementCommand}"/>
+                              </StackPanel>
+
+                              <TextBlock Text="Custom requirements" Classes="muted" Margin="0,10,0,0"/>
+                              <DataGrid ItemsSource="{Binding NextCustomRequirements}"
+                                        SelectedItem="{Binding SelectedNextCustomRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="requirementId" Binding="{Binding RequirementId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="amount" Binding="{Binding Amount, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddNextCustomRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveNextCustomRequirementCommand}"/>
+                              </StackPanel>
+                            </StackPanel>
+                          </Expander>
+
+                          <Expander Header="Custom 1" IsExpanded="False">
+                            <StackPanel Spacing="8" Margin="0,6,0,0">
+                              <TextBlock Text="Items requis" Classes="muted"/>
+                              <DataGrid ItemsSource="{Binding Custom1ItemRequirements}"
+                                        SelectedItem="{Binding SelectedCustom1ItemRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="itemId" Binding="{Binding ItemId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="qty" Binding="{Binding Quantity, Mode=TwoWay}" Width="80"/>
+                                  <DataGridCheckBoxColumn Header="consume" Binding="{Binding Consume, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom1ItemRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom1ItemRequirementCommand}"/>
+                              </StackPanel>
+
+                              <TextBlock Text="Custom requirements" Classes="muted" Margin="0,10,0,0"/>
+                              <DataGrid ItemsSource="{Binding Custom1CustomRequirements}"
+                                        SelectedItem="{Binding SelectedCustom1CustomRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="requirementId" Binding="{Binding RequirementId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="amount" Binding="{Binding Amount, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom1CustomRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom1CustomRequirementCommand}"/>
+                              </StackPanel>
+                            </StackPanel>
+                          </Expander>
+
+                          <Expander Header="Custom 2" IsExpanded="False">
+                            <StackPanel Spacing="8" Margin="0,6,0,0">
+                              <TextBlock Text="Items requis" Classes="muted"/>
+                              <DataGrid ItemsSource="{Binding Custom2ItemRequirements}"
+                                        SelectedItem="{Binding SelectedCustom2ItemRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="itemId" Binding="{Binding ItemId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="qty" Binding="{Binding Quantity, Mode=TwoWay}" Width="80"/>
+                                  <DataGridCheckBoxColumn Header="consume" Binding="{Binding Consume, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom2ItemRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom2ItemRequirementCommand}"/>
+                              </StackPanel>
+
+                              <TextBlock Text="Custom requirements" Classes="muted" Margin="0,10,0,0"/>
+                              <DataGrid ItemsSource="{Binding Custom2CustomRequirements}"
+                                        SelectedItem="{Binding SelectedCustom2CustomRequirement}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="requirementId" Binding="{Binding RequirementId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="amount" Binding="{Binding Amount, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom2CustomRequirementCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom2CustomRequirementCommand}"/>
+                              </StackPanel>
+                            </StackPanel>
+                          </Expander>
+
+                        </StackPanel>
+                      </ScrollViewer>
+                    </ui:TabViewItem>
+
+                    <!-- Rewards -->
+                    <ui:TabViewItem Header="Récompenses" IsClosable="False">
+                      <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Spacing="12" Margin="0,6,0,0">
+
+                          <Expander Header="Custom 1" IsExpanded="True">
+                            <StackPanel Spacing="8" Margin="0,6,0,0">
+
+                              <TextBlock Text="Custom rewards" Classes="muted"/>
+                              <DataGrid ItemsSource="{Binding Custom1CustomRewards}"
+                                        SelectedItem="{Binding SelectedCustom1CustomReward}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="rewardId" Binding="{Binding RewardId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="amount" Binding="{Binding Amount, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom1CustomRewardCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom1CustomRewardCommand}"/>
+                              </StackPanel>
+
+                              <TextBlock Text="Console commands" Classes="muted" Margin="0,10,0,0"/>
+                              <DataGrid ItemsSource="{Binding Custom1ConsoleCommands}"
+                                        SelectedItem="{Binding SelectedCustom1ConsoleCommand}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="command" Binding="{Binding Text, Mode=TwoWay}" Width="*"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom1ConsoleCommandCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom1ConsoleCommandCommand}"/>
+                              </StackPanel>
+
+                            </StackPanel>
+                          </Expander>
+
+                          <Expander Header="Custom 2" IsExpanded="False">
+                            <StackPanel Spacing="8" Margin="0,6,0,0">
+
+                              <TextBlock Text="Custom rewards" Classes="muted"/>
+                              <DataGrid ItemsSource="{Binding Custom2CustomRewards}"
+                                        SelectedItem="{Binding SelectedCustom2CustomReward}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="rewardId" Binding="{Binding RewardId, Mode=TwoWay}" Width="*"/>
+                                  <DataGridTextColumn Header="amount" Binding="{Binding Amount, Mode=TwoWay}" Width="90"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom2CustomRewardCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom2CustomRewardCommand}"/>
+                              </StackPanel>
+
+                              <TextBlock Text="Console commands" Classes="muted" Margin="0,10,0,0"/>
+                              <DataGrid ItemsSource="{Binding Custom2ConsoleCommands}"
+                                        SelectedItem="{Binding SelectedCustom2ConsoleCommand}"
+                                        AutoGenerateColumns="False"
+                                        CanUserReorderColumns="False"
+                                        CanUserSortColumns="False">
+                                <DataGrid.Columns>
+                                  <DataGridTextColumn Header="command" Binding="{Binding Text, Mode=TwoWay}" Width="*"/>
+                                </DataGrid.Columns>
+                              </DataGrid>
+                              <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Content="Ajouter" Command="{Binding AddCustom2ConsoleCommandCommand}"/>
+                                <Button Content="Supprimer" Command="{Binding RemoveCustom2ConsoleCommandCommand}"/>
+                              </StackPanel>
+
+                            </StackPanel>
+                          </Expander>
+
+                        </StackPanel>
+                      </ScrollViewer>
+                    </ui:TabViewItem>
+
+                  </ui:TabView.TabItems>
+                </ui:TabView>
+              </Grid>
+            </Border>
+
+          </Grid>
+        </ui:TabViewItem>
+
+        <ui:TabViewItem Header="Assets" IsClosable="False">
+          <Grid ColumnDefinitions="320,*" RowDefinitions="Auto,*">
+
+            <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+              <TextBlock Text="Packs &amp; Assets" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <TextBlock Text="·" Opacity="0.5" VerticalAlignment="Center" />
+              <TextBlock Text="Astuce : tu peux importer un Assets.zip ou un dossier d'assets, puis copier/assigner le chemin." Opacity="0.7" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Packs list -->
+            <Border Grid.Row="1" Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="8">
+                  <TextBlock Text="Packs" FontSize="16" FontWeight="SemiBold" />
+                  <TextBox Watermark="Filtrer packs…" Text="{Binding PackSearch, Mode=TwoWay}" />
+                </StackPanel>
+
+                <ListBox Margin="0,10,0,0"
+                         ItemsSource="{Binding VisibleAssetPacks}"
+                         SelectedItem="{Binding SelectedAssetPack}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,4">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding SourcePath}" Opacity="0.65" FontSize="11" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Separator Margin="0,10,0,10" />
+
+                <TextBlock Text="Chemin Mods Hytale (défaut)" Opacity="0.7" FontSize="12" />
+                <TextBlock Text="{Binding DefaultHytaleModsPath}" Opacity="0.85" TextTrimming="CharacterEllipsis" />
+              </DockPanel>
+            </Border>
+
+            <!-- Assets + Preview -->
+            <Grid Grid.Column="1" Grid.Row="1" ColumnDefinitions="*,360">
+
+              <Border Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top" Spacing="8">
+                    <TextBlock Text="Fichiers" FontSize="16" FontWeight="SemiBold" />
+                    <TextBox Watermark="Rechercher un fichier…" Text="{Binding AssetSearch, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <ListBox Margin="0,10,0,0"
+                           ItemsSource="{Binding VisibleAssets}"
+                           SelectedItem="{Binding SelectedAsset}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0,4">
+                          <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding RelativePath}" Opacity="0.65" FontSize="11" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </DockPanel>
+              </Border>
+
+              <Border Grid.Column="1" Padding="12" CornerRadius="12" BorderThickness="1">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top" Spacing="8">
+                    <TextBlock Text="Aperçu" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding SelectedAsset.RelativePath, FallbackValue='(sélectionne un asset)'}" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Content="Copier chemin" Click="OnCopySelectedAssetPathClick" IsEnabled="{Binding HasSelectedAsset}" />
+                      <Button Content="Mettre dans entityId" Click="OnAssignSelectedAssetToNpcEntityIdClick" IsEnabled="{Binding HasSelectedNpcAndAsset}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Border Margin="0,12,0,0" CornerRadius="12" BorderThickness="1" Padding="10">
+                    <Image Source="{Binding SelectedAssetPreview}" Stretch="Uniform" Height="320" />
+                  </Border>
+
+                  <TextBlock Margin="0,10,0,0" Opacity="0.75" FontSize="12"
+                             Text="Note : pour les assets vanilla (textures, icônes), importe ton Assets.zip (extrait depuis le client). Pour les packs custom, scanne le dossier Mods." />
+                </DockPanel>
+              </Border>
+
+            </Grid>
+
+          </Grid>
+        </ui:TabViewItem>
+
+      </ui:TabView.TabItems>
+    </ui:TabView>
+
+    <!-- Bottom info bar -->
+    <ui:InfoBar Grid.Row="2"
+                Margin="10,0,10,10"
+                IsOpen="{Binding IsInfoBarOpen}"
+                IsClosable="True"
+                Title="{Binding InfoTitle}"
+                Message="{Binding Status}"
+                Severity="{Binding InfoSeverity}" />
+  </Grid>
+</Window>

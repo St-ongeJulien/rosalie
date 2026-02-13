@@ -1,0 +1,184 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Hylterium.QuestStudio.ViewModels"
+        x:Class="Hylterium.QuestStudio.MainWindow"
+        Width="1200" Height="720"
+        Title="Hylterium Quest Studio"
+        mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
+  <Grid RowDefinitions="Auto,* ,Auto">
+    <!-- Top toolbar -->
+    <Border Padding="10" BorderThickness="0,0,0,1">
+      <DockPanel>
+        <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Left">
+          <Button Content="Ouvrir…" Click="OnOpenClick"/>
+          <Button Content="Sauver" Click="OnSaveClick"/>
+          <Button Content="Sauver sous…" Click="OnSaveAsClick"/>
+          <Separator Width="12"/>
+          <Button Content="Nouveau NPC" Command="{Binding NewNpcCommand}"/>
+          <Button Content="Nouvelle page" Command="{Binding NewPageCommand}"/>
+          <Button Content="Supprimer page" Command="{Binding DeleteSelectedPageCommand}"/>
+        </StackPanel>
+
+        <TextBlock DockPanel.Dock="Right"
+                   VerticalAlignment="Center"
+                   Opacity="0.75"
+                   Text="{Binding CurrentFilePath, FallbackValue='(aucun fichier)'}"/>
+      </DockPanel>
+    </Border>
+
+    <!-- Main content -->
+    <Grid Grid.Row="1" ColumnDefinitions="280,280,*" RowDefinitions="*">
+      <!-- NPC list -->
+      <Border BorderThickness="0,0,1,0" Padding="10">
+        <StackPanel Spacing="8">
+          <TextBlock Text="NPCs" FontSize="18" FontWeight="SemiBold"/>
+          <ListBox ItemsSource="{Binding Npcs}" SelectedItem="{Binding SelectedNpc}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding DisplayTitle}" Opacity="0.7" FontSize="12"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <Separator/>
+
+          <TextBlock Text="Détails NPC" FontSize="14" FontWeight="SemiBold"/>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="npcId" Opacity="0.7"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedNpc.NpcId, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="entityId" Opacity="0.7"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedNpc.EntityId, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="name" Opacity="0.7"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedNpc.Name, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="title" Opacity="0.7"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedNpc.DisplayTitle, Mode=TwoWay}"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="firstPageId" Opacity="0.7"/>
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding SelectedNpc.FirstPageId, Mode=TwoWay}"/>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <!-- Page list -->
+      <Border Grid.Column="1" BorderThickness="0,0,1,0" Padding="10">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Pages" FontSize="18" FontWeight="SemiBold"/>
+          <ListBox ItemsSource="{Binding SelectedNpc.Pages}" SelectedItem="{Binding SelectedPage}">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <StackPanel>
+                  <TextBlock Text="{Binding PageId}" FontWeight="SemiBold"/>
+                  <TextBlock Text="{Binding Title}" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+
+          <Separator/>
+
+          <TextBlock Text="Quêtes détectées" FontSize="14" FontWeight="SemiBold"/>
+          <ScrollViewer Height="160">
+            <ItemsControl ItemsSource="{Binding QuestIds}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding .}" Opacity="0.8"/>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </StackPanel>
+      </Border>
+
+      <!-- Editor -->
+      <Border Grid.Column="2" Padding="12">
+        <ScrollViewer>
+          <StackPanel Spacing="10">
+            <TextBlock Text="Éditeur de page" FontSize="18" FontWeight="SemiBold"/>
+
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="pageId" Opacity="0.7"/>
+              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPage.PageId, Mode=TwoWay}"/>
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="title" Opacity="0.7"/>
+              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPage.Title, Mode=TwoWay}"/>
+            </Grid>
+
+            <TextBlock Text="content" Opacity="0.7"/>
+            <TextBox Text="{Binding SelectedPage.Content, Mode=TwoWay}"
+                     AcceptsReturn="True"
+                     MinHeight="180"
+                     TextWrapping="Wrap"/>
+
+            <Separator/>
+
+            <TextBlock Text="Boutons (texte)" FontSize="14" FontWeight="SemiBold"/>
+            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="8" RowSpacing="6">
+              <TextBlock Grid.Row="0" Grid.Column="0" Text="next" Opacity="0.7"/>
+              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SelectedPage.NextButtonText, Mode=TwoWay}"/>
+
+              <TextBlock Grid.Row="1" Grid.Column="0" Text="prev" Opacity="0.7"/>
+              <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SelectedPage.PreviousButtonText, Mode=TwoWay}"/>
+
+              <TextBlock Grid.Row="2" Grid.Column="0" Text="custom1" Opacity="0.7"/>
+              <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SelectedPage.CustomButton1Text, Mode=TwoWay}"/>
+
+              <TextBlock Grid.Row="3" Grid.Column="0" Text="custom2" Opacity="0.7"/>
+              <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SelectedPage.CustomButton2Text, Mode=TwoWay}"/>
+            </Grid>
+
+            <Separator/>
+
+            <TextBlock Text="Quête: requirements/rewards (lecture rapide)" FontSize="14" FontWeight="SemiBold"/>
+
+            <TextBlock Text="NextButtonRequirement.customRequirements" Opacity="0.7"/>
+            <ItemsControl ItemsSource="{Binding SelectedPage.NextButtonRequirement.CustomRequirements}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Padding="8" Margin="0,0,0,6" BorderThickness="1" CornerRadius="8">
+                    <StackPanel>
+                      <TextBlock Text="{Binding RequirementId}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Amount, StringFormat=Amount: {0}}" Opacity="0.75"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="CustomButton1Reward.customRewards" Opacity="0.7"/>
+            <ItemsControl ItemsSource="{Binding SelectedPage.CustomButton1ButtonReward.CustomRewards}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Padding="8" Margin="0,0,0,6" BorderThickness="1" CornerRadius="8">
+                    <StackPanel>
+                      <TextBlock Text="{Binding RewardId}" FontWeight="SemiBold"/>
+                      <TextBlock Text="{Binding Amount, StringFormat=Amount: {0}}" Opacity="0.75"/>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+
+    <!-- Status bar -->
+    <Border Grid.Row="2" Padding="10" BorderThickness="0,1,0,0">
+      <TextBlock Text="{Binding Status}" Opacity="0.8"/>
+    </Border>
+  </Grid>
+</Window>

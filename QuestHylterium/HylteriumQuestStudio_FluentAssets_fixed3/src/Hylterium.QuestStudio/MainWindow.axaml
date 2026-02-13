@@ -1,0 +1,350 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Hylterium.QuestStudio.ViewModels"
+        xmlns:ui="using:FluentAvalonia.UI.Controls"
+        x:Class="Hylterium.QuestStudio.MainWindow"
+        Width="1280" Height="760"
+        MinWidth="980" MinHeight="600"
+        Title="Hylterium Quest Studio"
+        mc:Ignorable="d">
+
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+
+  <DockPanel>
+
+    <!-- Top CommandBar -->
+    <ui:CommandBar DockPanel.Dock="Top"
+                   IsOpen="True"
+                   IsSticky="True"
+                   ClosedDisplayMode="Compact"
+                   DefaultLabelPosition="Right"
+                   IsDynamicOverflowEnabled="True"
+                   OverflowButtonVisibility="Auto">
+      <ui:CommandBar.PrimaryCommands>
+        <ui:CommandBarButton Label="Ouvrir JSON" Click="OnOpenClick" />
+        <ui:CommandBarButton Label="Sauver" Click="OnSaveClick" />
+        <ui:CommandBarButton Label="Sauver sous…" Click="OnSaveAsClick" />
+        <ui:CommandBarSeparator/>
+        <ui:CommandBarButton Label="Nouveau NPC" Command="{Binding NewNpcCommand}" />
+        <ui:CommandBarButton Label="Nouvelle page" Command="{Binding NewPageCommand}" />
+        <ui:CommandBarButton Label="Supprimer page" Command="{Binding DeleteSelectedPageCommand}" />
+      </ui:CommandBar.PrimaryCommands>
+
+      <ui:CommandBar.SecondaryCommands>
+        <ui:CommandBarButton Label="Scanner Mods Hytale" Click="OnScanHytaleModsClick" />
+        <ui:CommandBarButton Label="Ajouter pack assets…" Click="OnAddAssetPackClick" />
+        <ui:CommandBarButton Label="Ajouter dossier assets…" Click="OnAddAssetFolderClick" />
+      </ui:CommandBar.SecondaryCommands>
+
+      <ui:CommandBar.Content>
+        <TextBlock Opacity="0.75" VerticalAlignment="Center"
+                   Text="{Binding CurrentFilePath, FallbackValue='(aucun fichier)'}" />
+      </ui:CommandBar.Content>
+    </ui:CommandBar>
+
+    <!-- Bottom InfoBar -->
+    <Border DockPanel.Dock="Bottom" Padding="10,8">
+      <ui:InfoBar IsOpen="{Binding IsInfoBarOpen}"
+                  IsClosable="True"
+                  Title="{Binding InfoTitle}"
+                  Message="{Binding Status}"
+                  Severity="{Binding InfoSeverity}" />
+    </Border>
+
+    <!-- Main Tabs -->
+    <ui:TabView Margin="10">
+      <ui:TabView.TabItems>
+
+        <!-- Quests tab -->
+        <ui:TabViewItem Header="Quêtes" IsClosable="False">
+          <Grid ColumnDefinitions="340,340,*" RowDefinitions="*">
+
+            <!-- NPCs -->
+            <Border Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="8">
+                  <TextBlock Text="NPCs" FontSize="18" FontWeight="SemiBold" />
+                  <TextBox Watermark="Rechercher un NPC…" Text="{Binding NpcSearch, Mode=TwoWay}" />
+                </StackPanel>
+
+                <ListBox Margin="0,10,0,0"
+                         ItemsSource="{Binding VisibleNpcs}"
+                         SelectedItem="{Binding SelectedNpc}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,4">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding DisplayTitle}" Opacity="0.7" FontSize="12" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Separator Margin="0,10,0,10" />
+
+                <TextBlock Text="Détails NPC" FontSize="14" FontWeight="SemiBold" />
+
+                <StackPanel Spacing="8" Margin="0,8,0,0">
+                  <StackPanel>
+                    <TextBlock Text="npcId" Opacity="0.7" FontSize="12" />
+                    <TextBox Text="{Binding SelectedNpc.NpcId, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <StackPanel>
+                    <TextBlock Text="entityId" Opacity="0.7" FontSize="12" />
+                    <TextBox Text="{Binding SelectedNpc.EntityId, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <StackPanel>
+                    <TextBlock Text="name" Opacity="0.7" FontSize="12" />
+                    <TextBox Text="{Binding SelectedNpc.Name, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <StackPanel>
+                    <TextBlock Text="title" Opacity="0.7" FontSize="12" />
+                    <TextBox Text="{Binding SelectedNpc.DisplayTitle, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <StackPanel>
+                    <TextBlock Text="firstPageId" Opacity="0.7" FontSize="12" />
+                    <TextBox Text="{Binding SelectedNpc.FirstPageId, Mode=TwoWay}" />
+                  </StackPanel>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+
+            <!-- Pages -->
+            <Border Grid.Column="1" Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="8">
+                  <TextBlock Text="Pages" FontSize="18" FontWeight="SemiBold" />
+                  <TextBox Watermark="Rechercher une page…" Text="{Binding PageSearch, Mode=TwoWay}" />
+                </StackPanel>
+
+                <ListBox Margin="0,10,0,0"
+                         ItemsSource="{Binding VisiblePages}"
+                         SelectedItem="{Binding SelectedPage}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,4">
+                        <TextBlock Text="{Binding PageId}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding Title}" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Separator Margin="0,10,0,10" />
+
+                <TextBlock Text="Quêtes détectées" FontSize="14" FontWeight="SemiBold" />
+                <ScrollViewer Height="180" Margin="0,8,0,0">
+                  <ItemsControl ItemsSource="{Binding QuestIds}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock Text="{Binding .}" Opacity="0.85" Margin="0,2" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </DockPanel>
+            </Border>
+
+            <!-- Editor -->
+            <Border Grid.Column="2" Padding="14" CornerRadius="12" BorderThickness="1">
+              <ScrollViewer>
+                <StackPanel Spacing="12">
+                  <TextBlock Text="Éditeur de page" FontSize="18" FontWeight="SemiBold" />
+
+                  <Border CornerRadius="12" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="10">
+                      <TextBlock Text="Identité" FontSize="14" FontWeight="SemiBold" />
+
+                      <StackPanel>
+                        <TextBlock Text="pageId" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.PageId, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="title" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.Title, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="content" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.Content, Mode=TwoWay}"
+                                 AcceptsReturn="True"
+                                 MinHeight="180"
+                                 TextWrapping="Wrap" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+
+                  <Border CornerRadius="12" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="10">
+                      <TextBlock Text="Boutons (texte)" FontSize="14" FontWeight="SemiBold" />
+
+                      <StackPanel>
+                        <TextBlock Text="next" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.NextButtonText, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="prev" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.PreviousButtonText, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="close" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.CloseButtonText, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="custom1" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.CustomButton1Text, Mode=TwoWay}" />
+                      </StackPanel>
+
+                      <StackPanel>
+                        <TextBlock Text="custom2" Opacity="0.7" FontSize="12" />
+                        <TextBox Text="{Binding SelectedPage.CustomButton2Text, Mode=TwoWay}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </Border>
+
+                  <Border CornerRadius="12" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="10">
+                      <TextBlock Text="Quête (lecture rapide)" FontSize="14" FontWeight="SemiBold" />
+
+                      <TextBlock Text="NextButtonRequirement.customRequirements" Opacity="0.7" FontSize="12" />
+                      <ItemsControl ItemsSource="{Binding SelectedPage.NextButtonRequirement.CustomRequirements}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Border Padding="10" Margin="0,0,0,8" CornerRadius="12" BorderThickness="1">
+                              <StackPanel>
+                                <TextBlock Text="{Binding RequirementId}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Amount, StringFormat=Amount: {0}}" Opacity="0.75" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <TextBlock Text="CustomButton1Reward.customRewards" Opacity="0.7" FontSize="12" Margin="0,8,0,0" />
+                      <ItemsControl ItemsSource="{Binding SelectedPage.CustomButton1ButtonReward.CustomRewards}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate>
+                            <Border Padding="10" Margin="0,0,0,8" CornerRadius="12" BorderThickness="1">
+                              <StackPanel>
+                                <TextBlock Text="{Binding RewardId}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Amount, StringFormat=Amount: {0}}" Opacity="0.75" />
+                              </StackPanel>
+                            </Border>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </Border>
+
+                </StackPanel>
+              </ScrollViewer>
+            </Border>
+
+          </Grid>
+        </ui:TabViewItem>
+
+        <!-- Assets tab -->
+        <ui:TabViewItem Header="Assets" IsClosable="False">
+          <Grid ColumnDefinitions="320,*" RowDefinitions="Auto,*">
+
+            <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="10" Margin="0,0,0,10">
+              <TextBlock Text="Packs &amp; Assets" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+              <TextBlock Text="·" Opacity="0.5" VerticalAlignment="Center" />
+              <TextBlock Text="Astuce : tu peux importer un Assets.zip ou un dossier d'assets, puis copier/assigner le chemin." Opacity="0.7" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Packs list -->
+            <Border Grid.Row="1" Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+              <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="8">
+                  <TextBlock Text="Packs" FontSize="16" FontWeight="SemiBold" />
+                  <TextBox Watermark="Filtrer packs…" Text="{Binding PackSearch, Mode=TwoWay}" />
+                </StackPanel>
+
+                <ListBox Margin="0,10,0,0"
+                         ItemsSource="{Binding VisibleAssetPacks}"
+                         SelectedItem="{Binding SelectedAssetPack}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <StackPanel Margin="0,4">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Text="{Binding SourcePath}" Opacity="0.65" FontSize="11" TextTrimming="CharacterEllipsis" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Separator Margin="0,10,0,10" />
+
+                <TextBlock Text="Chemin Mods Hytale (défaut)" Opacity="0.7" FontSize="12" />
+                <TextBlock Text="{Binding DefaultHytaleModsPath}" Opacity="0.85" TextTrimming="CharacterEllipsis" />
+              </DockPanel>
+            </Border>
+
+            <!-- Assets + Preview -->
+            <Grid Grid.Column="1" Grid.Row="1" ColumnDefinitions="*,360">
+
+              <Border Padding="12" CornerRadius="12" BorderThickness="1" Margin="0,0,10,0">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top" Spacing="8">
+                    <TextBlock Text="Fichiers" FontSize="16" FontWeight="SemiBold" />
+                    <TextBox Watermark="Rechercher un fichier…" Text="{Binding AssetSearch, Mode=TwoWay}" />
+                  </StackPanel>
+
+                  <ListBox Margin="0,10,0,0"
+                           ItemsSource="{Binding VisibleAssets}"
+                           SelectedItem="{Binding SelectedAsset}">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Margin="0,4">
+                          <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding RelativePath}" Opacity="0.65" FontSize="11" TextTrimming="CharacterEllipsis" />
+                        </StackPanel>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                </DockPanel>
+              </Border>
+
+              <Border Grid.Column="1" Padding="12" CornerRadius="12" BorderThickness="1">
+                <DockPanel>
+                  <StackPanel DockPanel.Dock="Top" Spacing="8">
+                    <TextBlock Text="Aperçu" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding SelectedAsset.RelativePath, FallbackValue='(sélectionne un asset)'}" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Button Content="Copier chemin" Click="OnCopySelectedAssetPathClick" IsEnabled="{Binding HasSelectedAsset}" />
+                      <Button Content="Mettre dans entityId" Click="OnAssignSelectedAssetToNpcEntityIdClick" IsEnabled="{Binding HasSelectedNpcAndAsset}" />
+                    </StackPanel>
+                  </StackPanel>
+
+                  <Border Margin="0,12,0,0" CornerRadius="12" BorderThickness="1" Padding="10">
+                    <Image Source="{Binding SelectedAssetPreview}" Stretch="Uniform" Height="320" />
+                  </Border>
+
+                  <TextBlock Margin="0,10,0,0" Opacity="0.75" FontSize="12"
+                             Text="Note : pour les assets vanilla (textures, icônes), importe ton Assets.zip (extrait depuis le client). Pour les packs custom, scanne le dossier Mods." />
+                </DockPanel>
+              </Border>
+
+            </Grid>
+
+          </Grid>
+        </ui:TabViewItem>
+
+      </ui:TabView.TabItems>
+    </ui:TabView>
+
+  </DockPanel>
+</Window>

@@ -1,0 +1,11 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             x:Class="Hylterium.QuestStudio.App"
+             RequestedThemeVariant="Dark">
+  <Application.Styles>
+    <!-- Fluent v2 (Win11-like) -->
+    <sty:FluentAvaloniaTheme PreferUserAccentColor="False"
+                             CustomAccentColor="#0d1627" />
+  </Application.Styles>
+</Application>

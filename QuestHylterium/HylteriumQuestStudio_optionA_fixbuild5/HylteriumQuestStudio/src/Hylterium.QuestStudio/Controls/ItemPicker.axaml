@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Hylterium.QuestStudio.Controls.ItemPicker">
+  <Grid>
+    <Border CornerRadius="10" BorderThickness="1" Padding="8">
+      <DockPanel>
+        <Border DockPanel.Dock="Left" Width="28" Height="28" CornerRadius="8" BorderThickness="1" Padding="3" Margin="0,0,8,0">
+          <Image Source="{Binding SelectedThumbnail, RelativeSource={RelativeSource AncestorType=UserControl}}" Stretch="Uniform"/>
+        </Border>
+
+        <TextBox x:Name="SearchBox"
+                 Text="{Binding Query, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+                 Watermark="{Binding Watermark, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 BorderThickness="0"
+                 Background="Transparent"
+                 Padding="0"/>
+      </DockPanel>
+    </Border>
+
+    <Popup x:Name="ResultsPopup"
+           PlacementTarget="{Binding ElementName=SearchBox}"
+           PlacementMode="Bottom"
+>
+      <Border CornerRadius="12" BorderThickness="1" Padding="6" MinWidth="360">
+        <ListBox x:Name="ResultsList"
+                 ItemsSource="{Binding Suggestions, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                 SelectionMode="Single"
+                 PointerPressed="OnResultsPointerPressed">
+          <ListBox.ItemTemplate>
+            <DataTemplate>
+              <Border Padding="6" CornerRadius="10">
+                <StackPanel Orientation="Horizontal" Spacing="10" AttachedToVisualTree="OnSuggestionRowAttached">
+                  <Border Width="30" Height="30" CornerRadius="8" BorderThickness="1" Padding="3">
+                    <Image Source="{Binding Thumbnail}" Stretch="Uniform"/>
+                  </Border>
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Text="{Binding Id}" Opacity="0.7" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Border>
+    </Popup>
+  </Grid>
+</UserControl>
